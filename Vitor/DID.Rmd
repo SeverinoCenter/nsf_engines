@@ -1,0 +1,116 @@
+---
+title: "DID NSF"
+author: "Vitor"
+date: "7/17/2023"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())  
+
+# Install packages
+PackageNames <- c("did", "stargazer", "magrittr", "AER", "car", "lmtest", "plm", "skedastic")
+for(i in PackageNames){
+  if(!require(i, character.only = T)){
+    install.packages(i, dependencies = T)
+    require(i, character.only = T)
+  }
+}
+
+# Read the dataset based on the machine or server
+if (Sys.info()["user"] == "success" && Sys.info()["nodename"] == "LAPTOP-GAME") {
+  # Your machine
+  data_file <- "panel.csv"
+} else if (Sys.info()["user"] == "Jason fill this fields" && Sys.info()["nodename"] == "ProfessorMachineHostname") {
+  # Professor's machine
+  data_file <- "path_to_professor_data_file.csv"
+} else {
+  # Server
+  data_file <- "path_to_server_data_file.csv"
+}
+
+# Load the dataset
+data <- read.csv(data_file)
+
+# Perform your data analysis using the 'data' variable
+
+# Rest of your code...
+
+
+```
+
+
+
+
+```{r}
+# Convert Year_date column to date format
+data$Year_date <- as.Date(data$Year_date, format = "%Y")
+
+# Create a treatment indicator variable
+data$treatment <-  data$d_59
+
+# Create a county fixed effects variable
+data$county_FE <- as.factor(data$awardeeCounty)
+
+# Convert the data to a panel data frame
+pdata <- pdata.frame(data, index = c("awardee", "Year_date"))
+
+# Perform the DiD analysis with county fixed effects and controlling for df_others
+model <- plm(estimatedTotalAmt ~ treatment + df_others, data = pdata, model = "within", effect = "individual")
+
+# Display the results
+summary(model)
+```
+
+
+
+
+
+## Staggered difference-in-differences (Sun and Abraham, 2020)
+```{r}
+# To implement the Sun and Abraham (2020) method,
+# we use the sunab(cohort, period) function
+res_sa20 = feols(vc_sum ~  sunab(year_treated, year) + GDP_per| MSA + year, news_MSA_VC) # specifying the cluster here doesn't change anything
+summary(res_sa20, vcov = "twoway")
+```
+## fixed-effects
+```{r}
+est_comb = feols(num_comp_per_aggreg~ MSA | treated^year_treated, news_MSA_VC )
+summary(est_comb, vcov = "twoway")
+#fixef(est_comb)[[1]]
+```
+## TWFE
+```{r}
+# "Naive" TWFE DiD (note that the time to treatment for the never treated is -1000)
+# (by using ref = c(-1, -1000) we exclude the period just before the treatment and 
+# the never treated)
+
+res_twfe = feols(num_comp_per_aggreg ~  i(years_to_treat, ref = c(-1, -1000)) | MSA + year, news_MSA_VC)
+summary(res_twfe, vcov = "twoway")
+```
+## Staggered difference-in-differences (Sun and Abraham, 2020)
+```{r}
+# To implement the Sun and Abraham (2020) method,
+# we use the sunab(cohort, period) function
+res_sa20 = feols(num_comp_per_aggreg ~  sunab(year_treated, year) | MSA + year, cluster = ~MSA, news_MSA_VC)
+summary(res_sa20, vcov = "twoway")
+```
+### Plot
+```{r}
+# Plot the two TWFE results
+iplot(list(res_twfe, res_sa20), sep = 0.5)
+```
+```{r}
+summary(res_sa20, agg = "att")
+```
+
+### heteroskedasticity?
+```{r}
+bptest(fit.vot)
+```
+
+
+
+
