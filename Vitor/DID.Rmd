@@ -45,25 +45,29 @@ data <- read.csv(data_file)
 
 
 ```{r}
+#bulshit 
 # Convert Year_date column to date format
 data$Year_date <- as.Date(data$Year_date, format = "%Y")
 
 # Create a treatment indicator variable
-data$treatment <-  data$d_59
+data$treatment <-  data$d_59 * 
 
 # Create a county fixed effects variable
 data$county_FE <- as.factor(data$awardeeCounty)
 
-# Convert the data to a panel data frame
-pdata <- pdata.frame(data, index = c("awardee", "Year_date"))
 
 # Perform the DiD analysis with county fixed effects and controlling for df_others
-model <- plm(estimatedTotalAmt ~ treatment + df_others, data = pdata, model = "within", effect = "individual")
+model <- plm(estimatedTotalAmt ~ treatment + d_inv_df_others, data = pdata, model = "within", effect = "individual")
 
 # Display the results
 summary(model)
 ```
+#Year_date	d_inv_df_SBIR_1	df_SBIR_1	d_inv_df_SBIR_2	df_SBIR_2	d_inv_df_STTR_1	df_STTR_1	d_inv_df_STTR_2	df_STTR_2	d_inv_df_PFI	df_PFI	d_inv_df_others	df_others	d_inv	d_59	estimatedTotalAmt	d_99	estimatedTotalAmt_d_99	total_corps	total_fund
 
+```{r}
+DID_simple <- plm(total_fund ~ I(total_corps*awardeeCounty) + total_corps + df_others + df_PFI + df_SBIR_1 +df_SBIR_2 + df_STTR_1 + df_STTR_2 + awardeeCounty , data = data, model = "within", effect = "individual")
+
+```
 
 
 
