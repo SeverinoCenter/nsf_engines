@@ -32,7 +32,7 @@ if (Sys.info()["user"] == "success" && Sys.info()["nodename"] == "LAPTOP-GAME") 
 }
 
 # Load the dataset
-data <- read.csv(data_file)
+dta <- read.csv(data_file)
 
 # Perform your data analysis using the 'data' variable
 
@@ -41,27 +41,67 @@ data <- read.csv(data_file)
 
 ```
 
-
-
-
+## Most simple call
 ```{r}
-#bulshit 
-# Convert Year_date column to date format
-data$Year_date <- as.Date(data$Year_date, format = "%Y")
+# estimate group-time average treatment effects using att_gt method
+example_attgt <- att_gt(yname = "df_SBIR_2",
+                        tname = "Year_date",
+                        idname = "id",
+                        gname = "G",
+                        xformla = ~1,
+                        data = dta
+                        )
 
-# Create a treatment indicator variable
-data$treatment <-  data$d_59 * 
-
-# Create a county fixed effects variable
-data$county_FE <- as.factor(data$awardeeCounty)
-
-
-# Perform the DiD analysis with county fixed effects and controlling for df_others
-model <- plm(estimatedTotalAmt ~ treatment + d_inv_df_others, data = pdata, model = "within", effect = "individual")
-
-# Display the results
-summary(model)
+# provides estimates of the group-time average treatment effects in the column labeled att
+summary(example_attgt)
 ```
+
+# Aggregating group-time average treatment effects
+
+This is the simple weighted average of all groups based on their size
+```{r}
+agg.simple <- aggte(example_attgt, type = "simple")
+summary(agg.simple)
+```
+
+## Dynamic Effects and Event Studies 
+```{r}
+agg.es <- aggte(example_attgt, type = "dynamic")
+summary(agg.es)
+ggdid(agg.es)
+```
+
+## Group Effects and Event Studies 
+```{r}
+agg.g <- aggte(example_attgt, type = "group")
+summary(agg.g)
+ggdid(agg.g)
+```
+
+## aggregations across different time periods.
+```{r}
+agg.ct <- aggte(example_attgt, type = "calendar")
+summary(agg.ct)
+ggdid(agg.ct)
+```
+
+## Not Yet Treated 
+```{r}
+example_attgt_altcontrol <- att_gt(yname = "df_SBIR_2",
+                                   tname = "Year_date",
+                                   idname = "id",
+                                   gname = "G",
+                                   xformla = ~1,
+                                   data = dta,
+                                   allow_unbalanced_panel = TRUE,
+                                   control_group = "notyettreated"          
+                                   )
+summary(example_attgt_altcontrol)
+```
+
+
+
+
 #Year_date	d_inv_df_SBIR_1	df_SBIR_1	d_inv_df_SBIR_2	df_SBIR_2	d_inv_df_STTR_1	df_STTR_1	d_inv_df_STTR_2	df_STTR_2	d_inv_df_PFI	df_PFI	d_inv_df_others	df_others	d_inv	d_59	estimatedTotalAmt	d_99	estimatedTotalAmt_d_99	total_corps	total_fund
 
 I(total_corps*total_corps) +
@@ -73,7 +113,7 @@ summary(DID_simple)
 ```
 
 
-
+# Not complete! Don't run.
 
 ## Staggered difference-in-differences (Sun and Abraham, 2020)
 ```{r}
