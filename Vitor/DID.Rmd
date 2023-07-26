@@ -11,7 +11,7 @@ output:
 rm(list=ls())  
 
 # Install packages
-PackageNames <- c("did", "stargazer", "magrittr", "AER", "car", "lmtest", "plm", "skedastic")
+PackageNames <- c("did", "stargazer", "magrittr", "AER", "car", "lmtest", "plm", "skedastic", "dplyr")
 for(i in PackageNames){
   if(!require(i, character.only = T)){
     install.packages(i, dependencies = T)
@@ -41,14 +41,33 @@ dta <- read.csv(data_file)
 
 ```
 
+Just testing
+```{r}
+data(mpdta)
+```
+Just testing
+
+
+Creating a subset according to what aqnalysis you want (SBIR as example)
+```{r}
+SBIR <- dta %>%
+  group_by(ID) %>%
+  filter(any(SBIR_1 != 0))
+
+# View the subset
+print(SBIR)
+
+```
+
 ## Most simple call
 ```{r}
 # estimate group-time average treatment effects using att_gt method
-example_attgt <- att_gt(yname = "df_SBIR_2",
+example_attgt <- att_gt(yname = "SBIR_1",
                         tname = "Year_date",
-                        idname = "id",
-                        gname = "G",
+                        idname = "ID",
+                        gname = "g_SBIR_1",
                         xformla = ~1,
+                        panel = FALSE,
                         data = dta
                         )
 
@@ -60,13 +79,13 @@ summary(example_attgt)
 
 This is the simple weighted average of all groups based on their size
 ```{r}
-agg.simple <- aggte(example_attgt, type = "simple")
+agg.simple <- aggte(example_attgt, type = "simple", na.rm = TRUE)
 summary(agg.simple)
 ```
 
 ## Dynamic Effects and Event Studies 
 ```{r}
-agg.es <- aggte(example_attgt, type = "dynamic")
+agg.es <- aggte(example_attgt, type = "dynamic", na.rm = TRUE)
 summary(agg.es)
 ggdid(agg.es)
 ```
