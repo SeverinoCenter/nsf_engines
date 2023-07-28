@@ -62,7 +62,7 @@ print(SBIR)
 ## Most simple call
 ```{r}
 # estimate group-time average treatment effects using att_gt method
-example_attgt <- att_gt(yname = "SBIR_1",
+example_attgt <- att_gt(yname = "SBIR_2",
                         tname = "Year_date",
                         idname = "ID",
                         gname = "g_SBIR_1",
@@ -106,10 +106,10 @@ ggdid(agg.ct)
 
 ## Not Yet Treated 
 ```{r}
-example_attgt_altcontrol <- att_gt(yname = "df_SBIR_2",
+example_attgt_altcontrol <- att_gt(yname = "SBIR_2",
                                    tname = "Year_date",
-                                   idname = "id",
-                                   gname = "G",
+                                   idname = "ID",
+                                   gname = "g_SBIR_2",
                                    xformla = ~1,
                                    data = dta,
                                    allow_unbalanced_panel = TRUE,
@@ -117,11 +117,25 @@ example_attgt_altcontrol <- att_gt(yname = "df_SBIR_2",
                                    )
 summary(example_attgt_altcontrol)
 ```
+```{r}
+agg.altcontrol <- aggte(example_attgt_altcontrol, type = "simple", na.rm = TRUE)
+summary(agg.altcontrol)
+```
+## Dynamic Effects and Event Studies 
+```{r}
+agg.DS <- aggte(agg.altcontrol, type = "dynamic", na.rm = TRUE)
+summary(agg.DS)
+ggdid(agg.DS)
+```
 
 
 
 
-#Year_date	d_inv_df_SBIR_1	df_SBIR_1	d_inv_df_SBIR_2	df_SBIR_2	d_inv_df_STTR_1	df_STTR_1	d_inv_df_STTR_2	df_STTR_2	d_inv_df_PFI	df_PFI	d_inv_df_others	df_others	d_inv	d_59	estimatedTotalAmt	d_99	estimatedTotalAmt_d_99	total_corps	total_fund
+# END!!!!!!!!!!!!
+
+
+
+# Not complete! Don't run.
 
 I(total_corps*total_corps) +
 ```{r}
@@ -131,8 +145,6 @@ summary(DID_simple)
 
 ```
 
-
-# Not complete! Don't run.
 
 ## Staggered difference-in-differences (Sun and Abraham, 2020)
 ```{r}
